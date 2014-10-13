@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Send various statistics about jenkins to graphite
+# Send various statistics about jenkins to statsd
 #
 # Jeremy Katz <katzj@hubspot.com>
 # Copyright 2012, HubSpot, Inc.
@@ -82,10 +82,10 @@ class JenkinsServer(object):
 
 def parse_args():
     parser = optparse.OptionParser()
-    parser.add_option("", "--graphite-server",
+    parser.add_option("", "--statsd-server",
                       help="Host name of the server running graphite")
-    parser.add_option("", "--graphite-port",
-                      default="2003")
+    parser.add_option("", "--statsd-port", type=int,
+                      default=8125)
     parser.add_option("", "--jenkins-url",
                       help="Base url of your jenkins server (ex http://jenkins.example.com")
     parser.add_option("", "--jenkins-user",
@@ -96,7 +96,7 @@ def parse_args():
     parser.add_option("", "--view",
                       help="View to monitor for success/failure")
     parser.add_option("", "--prefix", default="jenkins",
-                      help="Graphite metric prefix")
+                      help="Statsd metric prefix")
     parser.add_option("", "--label", action="append", dest="labels",
                       help="Fetch stats applicable to this node label. Can bee applied multiple times for monitoring more labels.")
     parser.add_option("", "--job", action="append", dest="individual_jobs",
@@ -104,8 +104,8 @@ def parse_args():
 
     (opts, args) = parser.parse_args()
 
-    if not opts.graphite_server or not opts.jenkins_url:
-        print >> sys.stderr, "Need to specify graphite server and jenkins url"
+    if not opts.statsd_server or not opts.jenkins_url:
+        print >> sys.stderr, "Need to specify statsd server and jenkins url"
         sys.exit(1)
 
     return opts
@@ -118,7 +118,7 @@ def main():
 
     parsed_jenkins_url = urlparse(opts.jenkins_url)
     prefix = opts.prefix + '.' + parsed_jenkins_url.netloc.replace('.', '-')
-    stats = statsd.StatsClient(opts.graphite_server, 8125, prefix=prefix)
+    stats = statsd.StatsClient(opts.statsd_server, opts.statsd_port, prefix=prefix)
 
     print("Loading computers...")
     executor_info = jenkins.get_data("computer")
