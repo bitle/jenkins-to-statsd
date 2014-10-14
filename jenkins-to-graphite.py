@@ -146,17 +146,22 @@ def main():
     stats.gauge("nodes.total", len(nodes_total))
     stats.gauge("nodes.offline", len(nodes_offline))
     stats.gauge("nodes.online", len(nodes_total) - len(nodes_offline))
+    node_names_offline = [n['displayName'] for n in nodes_offline]
 
     if opts.labels:
         for label in opts.labels:
+            print("Loading information for label '%s'" % label)
             label_info = jenkins.get_data("label/%s" % label)
+            label_node_names = [n['nodeName'] for n in label_info.get('nodes', [])]
             stats.gauge("labels.%s.jobs.tiedJobs" % label, len(label_info.get("tiedJobs", [])))
-            stats.gauge("labels.%s.nodes.total" % label, len(label_info.get("nodes", [])))
+            stats.gauge("labels.%s.nodes.total" % label, len(label_node_names))
             stats.gauge("labels.%s.executors.total" % label, label_info.get("totalExecutors", 0))
             stats.gauge("labels.%s.executors.busy" % label, label_info.get("busyExecutors", 0))
             stats.gauge("labels.%s.executors.free" % label,
                               label_info.get("totalExecutors", 0) -
                               label_info.get("busyExecutors", 0))
+            label_offline_nodes = set(node_names_offline).intersection(set(label_node_names))
+            stats.gauge("labels.%s.executors.offline" % label, len(label_offline_nodes))
 
     if opts.individual_jobs:
         for job in opts.individual_jobs:
@@ -188,4 +193,7 @@ def main():
         stats.gauge("view.%s.warn" % opts.view, len(warn))
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        pass
