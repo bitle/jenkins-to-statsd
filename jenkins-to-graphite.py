@@ -24,7 +24,6 @@ import sys
 import time
 import urllib2
 import librato
-from urlparse import urlparse
 from datetime import datetime
 import json
 
