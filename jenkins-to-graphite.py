@@ -26,19 +26,7 @@ import urllib2
 import statsd
 from urlparse import urlparse
 from datetime import datetime
-
-try:
-    # this should be available in any python 2.6 or newer
-    import json
-except:
-    try:
-        # simplejson is a good replacement on 2.5 installs
-        import simplejson as json
-    except:
-        print "FATAL ERROR: can't find any json library for python"
-        print "Please install simplejson, json, or upgrade to python 2.6+"
-        sys.exit(1)
-#end json import
+import json
 
 
 class JenkinsServer(object):
