@@ -88,6 +88,8 @@ def parse_args():
                       help="Fetch stats applicable to this node label. Can bee applied multiple times for monitoring more labels.")
     parser.add_option("", "--job", action="append", dest="individual_jobs",
                       help="Fetch stats applicable to this job. Can bee applied multiple times for monitoring more jobs.")
+    parser.add_option("", "--monitor-nodes", action="store_true",
+                      help="A flag to enable nodes monitoring (total, online, offline)")
 
     (opts, args) = parser.parse_args()
 
@@ -128,12 +130,13 @@ def main():
                executor_info.get("totalExecutors", 0) -
                executor_info.get("busyExecutors", 0))
 
-    nodes_total = executor_info.get("computer", [])
-    nodes_offline = [j for j in nodes_total if j.get("offline")]
-    api.submit("nodes.total", len(nodes_total))
-    api.submit("nodes.offline", len(nodes_offline))
-    api.submit("nodes.online", len(nodes_total) - len(nodes_offline))
-    node_names_offline = [n['displayName'] for n in nodes_offline]
+    if opts.nodes:
+        nodes_total = executor_info.get("computer", [])
+        nodes_offline = [j for j in nodes_total if j.get("offline")]
+        api.submit("nodes.total", len(nodes_total))
+        api.submit("nodes.offline", len(nodes_offline))
+        api.submit("nodes.online", len(nodes_total) - len(nodes_offline))
+        node_names_offline = [n['displayName'] for n in nodes_offline]
 
     if opts.labels:
         for label in opts.labels:
