@@ -136,7 +136,6 @@ def main():
         api.submit("nodes.total", len(nodes_total))
         api.submit("nodes.offline", len(nodes_offline))
         api.submit("nodes.online", len(nodes_total) - len(nodes_offline))
-        node_names_offline = [n['displayName'] for n in nodes_offline]
 
     if opts.labels:
         for label in opts.labels:
@@ -150,6 +149,7 @@ def main():
             api.submit("labels.%s.executors.free" % label,
                        label_info.get("totalExecutors", 0) -
                        label_info.get("busyExecutors", 0))
+            node_names_offline = [n['displayName'] for n in nodes_offline]
             label_offline_nodes = set(node_names_offline).intersection(set(label_node_names))
             api.submit("labels.%s.executors.offline" % label, len(label_offline_nodes))
 
