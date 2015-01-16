@@ -105,9 +105,10 @@ def main():
     jenkins = JenkinsServer(opts.jenkins_url, opts.jenkins_user,
                             opts.jenkins_password)
 
-    parsed_jenkins_url = urlparse(opts.jenkins_url)
-    prefix = opts.prefix + '.' + parsed_jenkins_url.netloc.replace('.', '-')
-    api = librato.connect(opts.librato_user, opts.librato_token, base_path=prefix)
+    def prefix_name(name):
+        return opts.prefix + '.' + name
+
+    api = librato.connect(opts.librato_user, opts.librato_token, sanitizer=prefix_name)
 
     print("Loading computers...")
     executor_info = jenkins.get_data("computer")
@@ -130,7 +131,7 @@ def main():
                executor_info.get("totalExecutors", 0) -
                executor_info.get("busyExecutors", 0))
 
-    if opts.nodes:
+    if opts.monitor_nodes:
         nodes_total = executor_info.get("computer", [])
         nodes_offline = [j for j in nodes_total if j.get("offline")]
         api.submit("nodes.total", len(nodes_total))
